@@ -6,30 +6,55 @@ const style = require('./index.scss')
 interface Style {
     width?: number
     height?: number
-
     [name: string]: string | number
 }
 
 class Carousel extends React.Component<{
     style?: Style
+    interval?: number
     images: string[]
 }, {
     current: number
     // displacement: number
+    interval
     width: number
 }>{
     constructor(props) {
         super(props)
-        // TODO 创建两个 rxjs 数据流，一个emit定时器，一个emit用户操作
         let width = 500
         if (this.props.style && this.props.style.width) {
             width = this.props.style.width
         }
+        let interval = this.props.interval || 3000
         this.state = {
             current: 0,
-            // displacement: 0
+            interval,
             width
         }
+    }
+
+    timer$
+
+    unsubscribe
+
+    componentDidMount() {
+        this.timer$ = new Subject<Observable<number>>()
+
+        this.unsubscribe = this.timer$.switch().subscribe(() => {
+            let current = this.state.current + 1 < this.props.images.length ? this.state.current + 1 : 0
+            this.setState({
+                current
+            })
+        })
+        this.nextTimer()
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe.unsubscribe()
+    }
+
+    nextTimer = () => {
+        this.timer$.next(Observable.interval(this.state.interval))
     }
 
     render() {
@@ -54,7 +79,7 @@ class Carousel extends React.Component<{
                         images.map((image, index) => {
                             return <span key={index}
                                          className={classNames(style['btn-item'], {[style['active']]: current === index})}
-                                         onClick={() => {this.setState({current: index})}} />
+                                         onClick={() => {this.setState({current: index}); this.nextTimer()}} />
                         })
                     }
                 </div>
