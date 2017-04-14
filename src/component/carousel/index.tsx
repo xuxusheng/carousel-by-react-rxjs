@@ -21,6 +21,7 @@ class Carousel extends React.Component<{
 }>{
     constructor(props) {
         super(props)
+        // TODO 宽度最好还是实时的去获取，这样可以把整个轮播组件的宽度弄成动态的。
         let width = 500
         if (this.props.style && this.props.style.width) {
             width = this.props.style.width
